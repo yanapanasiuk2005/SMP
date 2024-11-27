@@ -1,0 +1,118 @@
+import pyfiglet
+from colorama import Fore, Style, init
+import shutil
+
+# Initialize colorama
+init()
+
+def list_fonts():
+    fonts = pyfiglet.FigletFont.getFonts()
+    return fonts
+
+
+def list_colors():
+    colors = {
+        "red": Fore.RED,
+        "green": Fore.GREEN,
+        "blue": Fore.BLUE,
+        "yellow": Fore.YELLOW,
+        "cyan": Fore.CYAN,
+        "magenta": Fore.MAGENTA,
+        "white": Fore.WHITE,
+        "reset": Style.RESET_ALL,
+    }
+    return colors
+
+
+def center_text(text, width):
+    return '\n'.join(line.center(width) for line in text.splitlines())
+
+
+def save_to_file(filename, content):
+    with open(filename, 'w') as file:
+        file.write(content)
+    print(f"ASCII art saved to {filename}.")
+
+
+def replace_ascii_characters(ascii_art, character):
+    return ascii_art.replace('#', character).replace('@', character).replace('8', character)
+
+
+def get_user_input(prompt, valid_options=None):
+    while True:
+        user_input = input(prompt)
+        if valid_options and user_input not in valid_options:
+            print("Invalid option. Please try again.")
+        else:
+            return user_input
+
+
+def main_menu():
+    print("Welcome to the User-Friendly ASCII Art Generator!\n")
+    print("Step-by-step guide to creating your custom ASCII art.")
+
+    user_input = input("Step 1: Enter a word or phrase to convert to ASCII art: ")
+
+    fonts = list_fonts()
+    print("\nStep 2: Choose a font from the list below:")
+    for index, font in enumerate(fonts, start=1):
+        print(f" {index}. {font}")
+
+    font_choice_index = get_user_input(f"Enter the number corresponding to your font choice (1-{len(fonts)}): ",
+                                       [str(i) for i in range(1, len(fonts) + 1)])
+    font_choice = fonts[int(font_choice_index) - 1]
+
+    colors = list_colors()
+    print("\nStep 3: Choose a color from the list below:")
+    for color in colors.keys():
+        print(f" - {color}")
+
+    color_choice = get_user_input("Enter your color choice: ", colors.keys())
+
+    try:
+        art_width = int(input("Step 4: Enter the desired width for the ASCII art (in characters): "))
+    except ValueError:
+        print("Invalid input. Using default width based on terminal size.")
+        art_width = shutil.get_terminal_size().columns
+
+    custom_char = input("Step 5: Enter the character you want to use for the ASCII art (e.g., '@', '#', '*'): ")
+
+    preview_ascii_art(user_input, font_choice, color_choice, art_width, custom_char, colors)
+
+
+def preview_ascii_art(user_input, font_choice, color_choice, art_width, custom_char, colors):
+    try:
+        ascii_art = pyfiglet.figlet_format(user_input, font=font_choice, width=art_width)
+
+        ascii_art_custom = replace_ascii_characters(ascii_art, custom_char)
+
+        terminal_width = shutil.get_terminal_size().columns
+        centered_ascii_art = center_text(ascii_art_custom, terminal_width)
+
+        print("\n--- ASCII Art Preview ---\n")
+        print(colors[color_choice] + centered_ascii_art + Style.RESET_ALL)
+        print("\n-------------------------\n")
+
+        preview_choice = input("Are you happy with the preview? Do you want to save the ASCII art? (yes/no): ").lower()
+        if preview_choice == 'yes':
+            filename = input("Enter the filename to save (with .txt extension): ")
+            save_to_file(filename, centered_ascii_art)
+        else:
+            print("You chose not to save the ASCII art. Feel free to make changes and try again.")
+            return_to_menu()
+
+    except Exception as e:
+        print(f"An error occurred: {e}. Please make sure the font is valid.")
+
+
+def return_to_menu():
+    choice = get_user_input("\nDo you want to return to the main menu or exit? (menu/exit): ", ['menu', 'exit'])
+    if choice == 'menu':
+        main_menu()
+    else:
+        print("Thank you for using the ASCII Art Generator! Goodbye.")
+        exit()
+
+
+if __name__ == "__main__":
+    main_menu()

@@ -1,0 +1,1 @@
+history = []  # Global history list
